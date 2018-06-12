@@ -74,7 +74,7 @@ func DecodeIsARHC(data []byte) bool {
 func CompressJPEGtoARHC(r io.Reader, w io.Writer, componentCoalescing uint8) error {
 	magic := NewMagicNumberReplacementWriter(&NopCloseWriteWrapper{w}, MAGIC_7Z, MAGIC_ARHC)
 	cw, _ := xz.NewWriter(&magic)
-	//cw := xz.NewCompressionWriter(&magic)
+
 	return Decode(r, cw, componentCoalescing)
 }
 

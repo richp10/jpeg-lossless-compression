@@ -296,6 +296,7 @@ func TestAhrcCompression(t *testing.T) {
 		DecompressARHCtoJPEG, true, false)
 }
 
+
 func TestXzCompression(t *testing.T) {
 	helperForCompression(t,
 		CompressAnyto7Z,
