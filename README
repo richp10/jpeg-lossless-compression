@@ -1,3 +1,5 @@
+.. fork to replace xz - currently broken
+
 Direct port from Sirikata's C++ Jpeg<->ARHC library into a standalone tool.
 
 When you compress a jpeg file with a standard tool like bzip or xz or lzma,

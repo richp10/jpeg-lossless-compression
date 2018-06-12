@@ -39,12 +39,12 @@
 //
 package main
 
-import "flag"
-import "os"
-import "fmt"
-import "io"
-
-//import "github.com/danielrh/go-xz"
+import (
+	"flag"
+	"fmt"
+	"io"
+	"os"
+)
 
 func main() {
 	fp := os.Stdin

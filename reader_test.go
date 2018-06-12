@@ -35,9 +35,9 @@ package main
 
 import (
 	"bytes"
-	"github.com/danielrh/go-xz"
 	"io"
 	"testing"
+
 )
 
 func assertEqual(t *testing.T, a uint32, b int) {
@@ -260,7 +260,7 @@ func helperForCompression(t *testing.T,
 		t.Errorf("Shouldnt identify %x as xz\n", magic[:nMagic])
 	}
 
-	inputReader := NewMagicNumberInjectionReader(&xz.NopCloseReadWrapper{initialReader}, magic[:nMagic])
+	inputReader := NewMagicNumberInjectionReader(&NopCloseReadWrapper{initialReader}, magic[:nMagic])
 	var arhc bytes.Buffer
 	compress(&inputReader, &arhc)
 	arhc2 := bytes.NewBuffer(arhc.Bytes())
@@ -277,9 +277,9 @@ func helperForCompression(t *testing.T,
 	if isXz != idXz {
 		t.Errorf("Shouldnt identify %x as xz\n", magic[:nMagic])
 	}
-	roundTripReader := NewMagicNumberInjectionReader(&xz.NopCloseReadWrapper{arhc2}, magic[:nMagic])
+	roundTripReader := NewMagicNumberInjectionReader(&NopCloseReadWrapper{arhc2}, magic[:nMagic])
 	var roundTrip bytes.Buffer
-	err = decompress(&roundTripReader, &xz.NopCloseWriteWrapper{&roundTrip})
+	err = decompress(&roundTripReader, &NopCloseWriteWrapper{&roundTrip})
 	if err != nil {
 		t.Errorf("Error %v\n", err)
 	}

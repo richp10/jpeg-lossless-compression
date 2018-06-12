@@ -39,9 +39,12 @@
 //
 package main
 
-import "bytes"
-import "io"
-import "github.com/danielrh/go-xz"
+import (
+	"bytes"
+	"io"
+
+	"github.com/ulikunitz/xz"
+)
 
 var MAGIC_7Z = []byte{0xFD, '7', 'z', 'X', 'Z', 0x00}
 var MAGIC_ARHC = []byte{'A', 'R', 'H', 'C', 0x01, 0x00}
@@ -69,16 +72,18 @@ func DecodeIsARHC(data []byte) bool {
 
 // Decode reads a JPEG image from r and returns it as an image.Image.
 func CompressJPEGtoARHC(r io.Reader, w io.Writer, componentCoalescing uint8) error {
-	magic := NewMagicNumberReplacementWriter(&xz.NopCloseWriteWrapper{w}, MAGIC_7Z, MAGIC_ARHC)
-	cw := xz.NewCompressionWriter(&magic)
-	return Decode(r, &cw, componentCoalescing)
+	magic := NewMagicNumberReplacementWriter(&NopCloseWriteWrapper{w}, MAGIC_7Z, MAGIC_ARHC)
+	cw, _ := xz.NewWriter(&magic)
+	//cw := xz.NewCompressionWriter(&magic)
+	return Decode(r, cw, componentCoalescing)
 }
 
 // Decode reads a JPEG image from r and returns it as an image.Image.
 func DecompressARHCtoJPEG(r io.Reader, w io.Writer) error {
-	magic := NewMagicNumberReplacementReader(&xz.NopCloseReadWrapper{r}, MAGIC_ARHC, MAGIC_7Z)
-	cr := xz.NewDecompressionReader(&magic)
-	return Decode(&cr, &xz.NopCloseWriteWrapper{w}, 0)
+	magic := NewMagicNumberReplacementReader(&NopCloseReadWrapper{r}, MAGIC_ARHC, MAGIC_7Z)
+	cr, _ := xz.NewReader(&magic)
+
+	return Decode(cr, &NopCloseWriteWrapper{w}, 0)
 }
 
 func Copy(r io.ReadCloser, w io.WriteCloser) error {
@@ -108,12 +113,33 @@ func Copy(r io.ReadCloser, w io.WriteCloser) error {
 
 // Decode reads a JPEG image from r and returns it as an image.Image.
 func CompressAnyto7Z(r io.Reader, w io.Writer) error {
-	cw := xz.NewCompressionWriter(&xz.NopCloseWriteWrapper{w})
-	return Copy(&xz.NopCloseReadWrapper{r}, &cw)
+	cw, _ := xz.NewWriter(w)
+
+	return Copy(&NopCloseReadWrapper{r}, &NopCloseWriteWrapper{cw})
 }
 
 // Decode reads a JPEG image from r and returns it as an image.Image.
 func Decompress7ZtoAny(r io.Reader, w io.Writer) error {
-	cr := xz.NewDecompressionReader(&xz.NopCloseReadWrapper{r})
-	return Copy(&cr, &xz.NopCloseWriteWrapper{w})
+	cr, _ := xz.NewReader(r)
+	return Copy(&NopCloseReadWrapper{cr}, &NopCloseWriteWrapper{w})
+}
+
+type NopCloseReadWrapper struct {
+	R io.Reader
+}
+func (r *NopCloseReadWrapper) Close () error {
+	return nil
+}
+func (r *NopCloseReadWrapper) Read(data []byte) (int, error) {
+	return r.R.Read(data)
+}
+
+type NopCloseWriteWrapper struct {
+	W io.Writer
+}
+func (r *NopCloseWriteWrapper) Close () error {
+	return nil
+}
+func (r *NopCloseWriteWrapper) Write(data []byte) (int, error) {
+	return r.W.Write(data)
 }
